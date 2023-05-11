@@ -26,9 +26,9 @@ export declare type PreviewDimensions = {
     height: number;
     ratio: number;
 };
-export declare type CropperState = {
-    loading: boolean;
-} & CropPoints;
+export declare type CropperState = CropPoints & {
+    loading?: boolean;
+};
 export declare type CropperRef = {
     backToCrop: () => void;
     done: (opts?: Partial<ClickCropOptions>) => Promise<Blob>;

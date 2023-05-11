@@ -226,7 +226,7 @@ const Canvas: React.FC<ICropperRef> = ({
     const { x, y } = position;
     clearMagnifier();
     setCropPoints((cPs) => ({ ...cPs, [area]: { x, y } } as Types.CropPoints));
-    onDragStop?.({ ...cp, [area]: { x, y }, loading });
+    onDragStop?.({ ...cp, [area]: { x, y } });
   }, []);
 
   return (
