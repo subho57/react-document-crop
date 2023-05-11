@@ -32,11 +32,9 @@ export type PreviewDimensions = {
   ratio: number;
 };
 
-export type CropperState =
-  | {
-      loading: boolean;
-    }
-  | CropPoints;
+export type CropperState = {
+  loading: boolean;
+} & CropPoints;
 
 export type CropperRef = {
   backToCrop: () => void;

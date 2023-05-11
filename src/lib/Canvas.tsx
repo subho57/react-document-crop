@@ -175,8 +175,8 @@ const Canvas: React.FC<ICropperRef> = ({
   };
 
   useEffect(() => {
-    if (onChange) {
-      onChange({ ...cropPoints, loading });
+    if (cropPoints) {
+      onChange?.({ ...cropPoints, loading });
     }
   }, [cropPoints, loading]);
 
@@ -226,9 +226,7 @@ const Canvas: React.FC<ICropperRef> = ({
     const { x, y } = position;
     clearMagnifier();
     setCropPoints((cPs) => ({ ...cPs, [area]: { x, y } } as Types.CropPoints));
-    if (onDragStop) {
-      onDragStop({ ...cp, [area]: { x, y } });
-    }
+    onDragStop?.({ ...cp, [area]: { x, y }, loading });
   }, []);
 
   return (
