@@ -79,5 +79,6 @@
     "opencv-react": "subho57/opencv-react#master",
     "prop-types": "^15.8.1",
     "react-draggable": "^4.4.5"
-  }
+  },
+  "packageManager": "yarn@3.5.1"
 }
