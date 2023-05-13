@@ -1,20 +1,21 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable no-param-reassign */
-import type { Rect } from 'opencv-react';
+import type { Mat, Rect } from 'opencv-react';
 import { useOpenCv } from 'opencv-react';
 import React, { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import type * as Types from '../types';
 import CropPoints from './CropPoints';
 import CropPointsDelimiters from './CropPointsDelimiters';
-import { applyFilter, transform } from './imgManipulation';
-import { calcDims, isCrossOriginURL, readFile } from './utils';
+import { applyFilter, mirror, rotate, transform } from './imgManipulation';
+import { calcDims, calculateMidpoint, isCrossOriginURL, readFile } from './utils';
 
 const buildImgContainerStyle = (previewDims: Types.PreviewDimensions) => ({
   width: previewDims.width,
   height: previewDims.height,
 });
 
-let imageResizeRatio = 1;
+let imageResizeRatio = 0;
 
 export interface ICropperRef {
   image: File | string;
@@ -28,6 +29,7 @@ export interface ICropperRef {
   lineColor?: string;
   maxWidth?: number;
   maxHeight?: number;
+  displayGrid?: boolean;
   openCvPath?: string;
 }
 
@@ -43,6 +45,7 @@ const Canvas: React.FC<ICropperRef> = ({
   lineColor,
   maxWidth,
   maxHeight,
+  displayGrid,
 }) => {
   const { loaded: cvLoaded, cv } = useOpenCv();
   const canvasRef = useRef<HTMLCanvasElement>();
@@ -66,12 +69,76 @@ const Canvas: React.FC<ICropperRef> = ({
     imageResizeRatio = newPreviewDims.width / canvasRef.current.width;
   };
 
+  const showPreview = (imageMat?: Mat) => {
+    if (!cv || !canvasRef.current || !previewCanvasRef.current) return;
+    const src = imageMat || cv.imread(canvasRef.current);
+    const dst = new cv.Mat();
+    const dsize = new cv.Size(0, 0);
+    cv.resize(src, dst, dsize, imageResizeRatio, imageResizeRatio, cv.INTER_AREA);
+    cv.imshow(previewCanvasRef.current, dst);
+    src.delete();
+    dst.delete();
+  };
+
+  const detectContours = () => {
+    if (!cv || !canvasRef.current) return;
+    const dst = cv.imread(canvasRef.current);
+    const ksize = new cv.Size(5, 5);
+    // convert the image to grayscale, blur it, and find edges in the image
+    cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
+    cv.GaussianBlur(dst, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
+    cv.Canny(dst, dst, 75, 200);
+    // find contours
+    cv.threshold(dst, dst, 120, 200, cv.THRESH_BINARY);
+    const contours = new cv.MatVector();
+    const hierarchy = new cv.Mat();
+    cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+    const rect = cv.boundingRect(dst);
+    dst.delete();
+    hierarchy.delete();
+    contours.delete();
+    // transform the rectangle into a set of points
+    Object.keys(rect).forEach((key) => {
+      rect[key as keyof Rect] *= imageResizeRatio;
+    });
+
+    const contourCoordinates = {
+      top: { x: rect.x + rect.width / 2, y: rect.y },
+      bottom: { x: rect.x + rect.width / 2, y: rect.y + rect.height },
+      left: { x: rect.x, y: rect.y + rect.height / 2 },
+      right: { x: rect.x + rect.width, y: rect.y + rect.height / 2 },
+      'left-top': { x: rect.x, y: rect.y },
+      'right-top': { x: rect.x + rect.width, y: rect.y },
+      'right-bottom': {
+        x: rect.x + rect.width,
+        y: rect.y + rect.height,
+      },
+      'left-bottom': { x: rect.x, y: rect.y + rect.height },
+    };
+
+    setCropPoints(contourCoordinates);
+  };
+
   useImperativeHandle(cropperRef, () => ({
     backToCrop: () => {
       setMode('crop');
     },
+    mirror: (horizontal: boolean) => {
+      if (!cv || !canvasRef.current) return;
+      mirror(cv, canvasRef.current, horizontal);
+      setPreviewPaneDimensions();
+      showPreview();
+      detectContours();
+    },
+    rotate: (angle: 90 | 180 | 270) => {
+      if (!cv || !canvasRef.current) return;
+      rotate(cv, canvasRef.current, angle);
+      setPreviewPaneDimensions();
+      showPreview();
+      detectContours();
+    },
     done: async (opts = {}) => {
-      return new Promise((resolve, reject) => {
+      return new Promise<Blob>((resolve, reject) => {
         setLoading(true);
         if (!cv || !canvasRef.current || !cropPoints) {
           reject(new Error('OpenCV not loaded or canvas not initialized'));
@@ -98,17 +165,6 @@ const Canvas: React.FC<ICropperRef> = ({
     },
   }));
 
-  const showPreview = () => {
-    if (!cv || !canvasRef.current || !previewCanvasRef.current) return;
-    const src = cv.imread(canvasRef.current);
-    const dst = new cv.Mat();
-    const dsize = new cv.Size(0, 0);
-    cv.resize(src, dst, dsize, imageResizeRatio, imageResizeRatio, cv.INTER_AREA);
-    cv.imshow(previewCanvasRef.current, dst);
-    src.delete();
-    dst.delete();
-  };
-
   useEffect(() => {
     if (mode === 'preview') {
       showPreview();
@@ -133,41 +189,6 @@ const Canvas: React.FC<ICropperRef> = ({
     });
   };
 
-  const detectContours = () => {
-    if (!cv || !canvasRef.current) return;
-    const dst = cv.imread(canvasRef.current);
-    const ksize = new cv.Size(5, 5);
-    // convert the image to grayscale, blur it, and find edges in the image
-    cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
-    cv.GaussianBlur(dst, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
-    cv.Canny(dst, dst, 75, 200);
-    // find contours
-    cv.threshold(dst, dst, 120, 200, cv.THRESH_BINARY);
-    const contours = new cv.MatVector();
-    const hierarchy = new cv.Mat();
-    cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
-    const rect = cv.boundingRect(dst);
-    dst.delete();
-    hierarchy.delete();
-    contours.delete();
-    // transform the rectangle into a set of points
-    Object.keys(rect).forEach((key) => {
-      rect[key as keyof Rect] *= imageResizeRatio;
-    });
-
-    const contourCoordinates = {
-      'left-top': { x: rect.x, y: rect.y },
-      'right-top': { x: rect.x + rect.width, y: rect.y },
-      'right-bottom': {
-        x: rect.x + rect.width,
-        y: rect.y + rect.height,
-      },
-      'left-bottom': { x: rect.x, y: rect.y + rect.height },
-    };
-
-    setCropPoints(contourCoordinates);
-  };
-
   const clearMagnifier = () => {
     if (!magnifierCanvasRef.current) return;
     const magnCtx = magnifierCanvasRef.current.getContext('2d', { alpha: true, willReadFrequently: true }) as CanvasRenderingContext2D;
@@ -175,9 +196,8 @@ const Canvas: React.FC<ICropperRef> = ({
   };
 
   useEffect(() => {
-    if (cropPoints) {
-      onChange?.({ ...cropPoints, loading });
-    }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    onChange?.({ ...cropPoints!, loading });
   }, [cropPoints, loading]);
 
   useEffect(() => {
@@ -197,35 +217,86 @@ const Canvas: React.FC<ICropperRef> = ({
     }
   }, [image, previewCanvasRef.current, cvLoaded, mode]);
 
-  const onDrag = useCallback((position: Types.Point, area: keyof Types.CropPoints) => {
+  const updateCropPoints = (position: Types.Point, area: keyof Types.CropPoints, cp: Types.CropPoints) => {
     const { x, y } = position;
 
-    const magnCtx = magnifierCanvasRef.current?.getContext('2d', { alpha: true, willReadFrequently: true }) as CanvasRenderingContext2D;
+    if (area.includes('-')) {
+      cp[area] = { x, y };
+      if (area.includes('left')) {
+        cp.left = calculateMidpoint(cp['left-top'], cp['left-bottom']);
+      }
+      if (area.includes('right')) {
+        cp.right = calculateMidpoint(cp['right-top'], cp['right-bottom']);
+      }
+      if (area.includes('top')) {
+        cp.top = calculateMidpoint(cp['left-top'], cp['right-top']);
+      }
+      if (area.includes('bottom')) {
+        cp.bottom = calculateMidpoint(cp['left-bottom'], cp['right-bottom']);
+      }
+    } else {
+      const dx = x - cp[area].x;
+      const dy = y - cp[area].y;
+      if (area === 'left') {
+        cp['left-top'] = { x, y: cp['left-top'].y + dy };
+        cp['left-bottom'] = { x, y: cp['left-bottom'].y + dy };
+        cp.left = calculateMidpoint(cp['left-top'], cp['left-bottom']);
+        cp.top = calculateMidpoint(cp['left-top'], cp['right-top']);
+        cp.bottom = calculateMidpoint(cp['left-bottom'], cp['right-bottom']);
+      } else if (area === 'right') {
+        cp['right-top'] = { x, y: cp['right-top'].y + dy };
+        cp['right-bottom'] = { x, y: cp['right-bottom'].y + dy };
+        cp.right = calculateMidpoint(cp['right-top'], cp['right-bottom']);
+        cp.top = calculateMidpoint(cp['left-top'], cp['right-top']);
+        cp.bottom = calculateMidpoint(cp['left-bottom'], cp['right-bottom']);
+      } else if (area === 'top') {
+        cp['left-top'] = { x: cp['left-top'].x + dx, y };
+        cp['right-top'] = { x: cp['right-top'].x + dx, y };
+        cp.top = calculateMidpoint(cp['left-top'], cp['right-top']);
+        cp.left = calculateMidpoint(cp['left-top'], cp['left-bottom']);
+        cp.right = calculateMidpoint(cp['right-top'], cp['right-bottom']);
+      } else if (area === 'bottom') {
+        cp['left-bottom'] = { x: cp['left-bottom'].x + dx, y };
+        cp['right-bottom'] = { x: cp['right-bottom'].x + dx, y };
+        cp.bottom = calculateMidpoint(cp['left-bottom'], cp['right-bottom']);
+        cp.left = calculateMidpoint(cp['left-top'], cp['left-bottom']);
+        cp.right = calculateMidpoint(cp['right-top'], cp['right-bottom']);
+      }
+    }
+    setCropPoints((prev) => ({ ...prev, ...cp } as Types.CropPoints));
+  };
+
+  const onDrag = useCallback((position: Types.Point, area: keyof Types.CropPoints, cp: Types.CropPoints) => {
+    const { x, y } = position;
     clearMagnifier();
 
-    if (!previewCanvasRef.current) return;
+    // Display the magnifier only when the user is dragging the vertices.
+    if (area.includes('-')) {
+      const magnCtx = magnifierCanvasRef.current?.getContext('2d', { alpha: true, willReadFrequently: true }) as CanvasRenderingContext2D;
 
-    // TODO we should make those 5, 10 and 20 values proportionate
-    // to the point size
-    magnCtx?.drawImage(
-      previewCanvasRef.current,
-      x - (pointSize - 10),
-      y - (pointSize - 10),
-      pointSize + 5,
-      pointSize + 5,
-      x + 10,
-      y - 90,
-      pointSize + 20,
-      pointSize + 20
-    );
+      if (!previewCanvasRef.current) return;
 
-    setCropPoints((cPs) => ({ ...cPs, [area]: { x, y } } as Types.CropPoints));
+      // TODO we should make those 5, 10 and 20 values proportionate
+      // to the point size
+      magnCtx?.drawImage(
+        previewCanvasRef.current,
+        x - (pointSize - 10),
+        y - (pointSize - 10),
+        pointSize + 5,
+        pointSize + 5,
+        x + 10,
+        y - 90,
+        pointSize + 20,
+        pointSize + 20
+      );
+    }
+    updateCropPoints(position, area, cp);
   }, []);
 
   const onStop = useCallback((position: Types.Point, area: keyof Types.CropPoints, cp: Types.CropPoints) => {
     const { x, y } = position;
     clearMagnifier();
-    setCropPoints((cPs) => ({ ...cPs, [area]: { x, y } } as Types.CropPoints));
+    updateCropPoints(position, area, cp);
     onDragStop?.({ ...cp, [area]: { x, y } });
   }, []);
 
@@ -254,6 +325,7 @@ const Canvas: React.FC<ICropperRef> = ({
             }}
           />
           <CropPointsDelimiters
+            displayGrid={displayGrid}
             previewDims={previewDims}
             cropPoints={cropPoints}
             lineWidth={lineWidth}

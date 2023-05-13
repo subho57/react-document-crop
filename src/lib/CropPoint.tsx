@@ -1,10 +1,11 @@
+/* eslint-disable no-nested-ternary */
 import React, { useCallback } from 'react';
 import type { DraggableEventHandler } from 'react-draggable';
 import Draggable from 'react-draggable';
 
 import type { CropPoints, Point } from '../types';
 
-const buildCropPointStyle = (size: number, pointBgColor: string, pointBorder: string) => ({
+const buildCropPointVertexStyle = (size: number, pointBgColor: string, pointBorder: string): React.CSSProperties => ({
   width: size,
   height: size,
   backgroundColor: pointBgColor,
@@ -12,6 +13,19 @@ const buildCropPointStyle = (size: number, pointBgColor: string, pointBorder: st
   borderRadius: '100%',
   position: 'absolute' as const,
   zIndex: 1001,
+  cursor: 'pointer',
+});
+
+const buildCropPointEdgeStyle = (size: number, pointBgColor: string, pointBorder: string, flip: boolean): React.CSSProperties => ({
+  width: flip ? size / 2 : size,
+  height: flip ? size : size / 2,
+  backgroundColor: pointBgColor,
+  border: pointBorder,
+  marginTop: flip ? undefined : size / 4,
+  marginLeft: flip ? size / 4 : undefined,
+  position: 'absolute' as const,
+  zIndex: 1001,
+  cursor: 'pointer',
 });
 
 const CropPoint = ({
@@ -32,7 +46,7 @@ const CropPoint = ({
   pointBgColor?: string;
   pointBorder?: string;
   onStop: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
-  onDrag: (position: Point, area: keyof CropPoints) => void;
+  onDrag: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
   bounds: {
     left: number;
     top: number;
@@ -48,7 +62,8 @@ const CropPoint = ({
           x: position.x + pointSize / 2,
           y: position.y + pointSize / 2,
         },
-        pointArea
+        pointArea,
+        cropPoints
       );
     },
     [externalOnDrag]
@@ -79,8 +94,15 @@ const CropPoint = ({
       }}
       onDrag={onDrag}
       onStop={onStop}
+      axis={pointArea === 'top' || pointArea === 'bottom' ? 'y' : pointArea === 'left' || pointArea === 'right' ? 'x' : 'both'}
     >
-      <div style={buildCropPointStyle(pointSize, pointBgColor, pointBorder)} />
+      <div
+        style={
+          ['top', 'bottom', 'left', 'right'].includes(pointArea)
+            ? buildCropPointEdgeStyle(pointSize, pointBgColor, pointBorder, pointArea === 'left' || pointArea === 'right')
+            : buildCropPointVertexStyle(pointSize, pointBgColor, pointBorder)
+        }
+      />
     </Draggable>
   );
 };

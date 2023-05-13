@@ -1,3 +1,5 @@
+import type { Point } from '../types';
+
 export const readFile = (file: File | string): Promise<string | null> => {
   if (file instanceof File) {
     return new Promise((resolve, reject) => {
@@ -40,4 +42,11 @@ export function isCrossOriginURL(url: string) {
   const parts = url.match(/^(\w+:)\/\/([^:/?#]*):?(\d*)/i);
 
   return parts !== null && (parts[1] !== location.protocol || parts[2] !== location.hostname || parts[3] !== location.port);
+}
+
+export function calculateMidpoint(p1: Point, p2: Point) {
+  return {
+    x: (p1.x + p2.x) / 2,
+    y: (p1.y + p2.y) / 2,
+  };
 }

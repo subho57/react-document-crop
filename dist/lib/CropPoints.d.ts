@@ -6,7 +6,7 @@ interface ICropPointsProps {
     pointBorder?: string;
     cropPoints: Types.CropPoints;
     previewDims: Types.PreviewDimensions;
-    onDrag: (position: Types.Point, area: keyof Types.CropPoints) => void;
+    onDrag: (position: Types.Point, area: keyof Types.CropPoints, cropPoints: Types.CropPoints) => void;
     onStop: (position: Types.Point, area: keyof Types.CropPoints, cropPoints: Types.CropPoints) => void;
     bounds: {
         left: number;

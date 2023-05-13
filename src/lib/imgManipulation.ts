@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 import type { CV } from 'opencv-react';
 
 import type { CropPoints, OpenCVFilterProps } from '../types';
@@ -50,16 +51,16 @@ export const transform = (
   setPreviewPaneDimensions();
 };
 
-export const applyFilter = async (cv: CV, docCanvas: HTMLCanvasElement, filterCvParams?: Partial<OpenCVFilterProps>) => {
+export const applyFilter = (cv: CV, docCanvas: HTMLCanvasElement, filterCvParams?: Partial<OpenCVFilterProps>) => {
   // default options
   const options = {
     blur: false,
-    th: true,
+    th: false,
     thMode: cv.ADAPTIVE_THRESH_MEAN_C,
     thMeanCorrection: 15,
     thBlockSize: 25,
     thMax: 255,
-    grayScale: true,
+    grayScale: false,
     ...filterCvParams,
   };
   const dst = cv.imread(docCanvas);
@@ -80,4 +81,32 @@ export const applyFilter = async (cv: CV, docCanvas: HTMLCanvasElement, filterCv
     }
   }
   cv.imshow(docCanvas, dst);
+  dst.delete();
+};
+
+export const rotate = (cv: CV, docCanvas: HTMLCanvasElement, angle: 90 | 180 | 270) => {
+  const dst = cv.imread(docCanvas);
+  const ROT_LABELS = {
+    90: cv.ROTATE_90_CLOCKWISE,
+    180: cv.ROTATE_180,
+    270: cv.ROTATE_90_COUNTERCLOCKWISE,
+  };
+  if (ROT_LABELS[angle] !== undefined) {
+    cv.rotate(dst, dst, ROT_LABELS[angle]);
+    if (angle === 90 || angle === 270) {
+      const { width, height } = docCanvas;
+      docCanvas.width = height;
+      docCanvas.height = width;
+    }
+  }
+  cv.imshow(docCanvas, dst);
+  dst.delete();
+};
+
+export const mirror = (cv: CV, docCanvas: HTMLCanvasElement, horizontal: boolean) => {
+  const dst = cv.imread(docCanvas);
+  const flipCode = horizontal ? 1 : 0;
+  cv.flip(dst, dst, flipCode);
+  cv.imshow(docCanvas, dst);
+  dst.delete();
 };

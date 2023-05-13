@@ -15,6 +15,10 @@ export type OpenCVFilterProps = {
 };
 
 export type CropPoints = {
+  top: Point;
+  left: Point;
+  bottom: Point;
+  right: Point;
   'left-top': Point;
   'right-top': Point;
   'left-bottom': Point;
@@ -38,5 +42,7 @@ export type CropperState = CropPoints & {
 
 export type CropperRef = {
   backToCrop: () => void;
+  mirror: (horizontal: boolean) => void;
+  rotate: (angle: 90 | 180 | 270) => void;
   done: (opts?: Partial<ClickCropOptions>) => Promise<Blob>;
 };

@@ -8,7 +8,7 @@ declare const CropPoint: ({ cropPoints, pointArea, defaultPosition, pointSize, p
     pointBgColor?: string | undefined;
     pointBorder?: string | undefined;
     onStop: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
-    onDrag: (position: Point, area: keyof CropPoints) => void;
+    onDrag: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
     bounds: {
         left: number;
         top: number;

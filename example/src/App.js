@@ -21,10 +21,6 @@ const App = () => {
     try {
       const res = await cropperRef.current.done({
         preview: true,
-        filterCvParams: {
-          thMeanCorrection: 13,
-          thMode: window.cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-        },
       });
       console.log('Cropped and filtered image', res);
     } catch (e) {
@@ -63,6 +59,34 @@ const App = () => {
             </Button>
             <Button
               onClick={() => {
+                cropperRef.current.rotate(90);
+              }}
+            >
+              Rotate CW
+            </Button>
+            <Button
+              onClick={() => {
+                cropperRef.current.rotate(270);
+              }}
+            >
+              Rotate CCW
+            </Button>
+            <Button
+              onClick={() => {
+                cropperRef.current.mirror(true);
+              }}
+            >
+              Flip Horizontal
+            </Button>
+            <Button
+              onClick={() => {
+                cropperRef.current.mirror();
+              }}
+            >
+              Flip Vertical
+            </Button>
+            <Button
+              onClick={() => {
                 setImg(undefined);
                 setCropState();
               }}
@@ -72,7 +96,7 @@ const App = () => {
           </div>
         )}
         <Cropper
-          openCvPath="./opencv/opencv.js"
+          // openCvPath="./opencv/opencv.js"
           ref={cropperRef}
           image={img}
           onChange={onChange}

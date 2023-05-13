@@ -12,6 +12,7 @@ export interface ICropperRef {
     lineColor?: string;
     maxWidth?: number;
     maxHeight?: number;
+    displayGrid?: boolean;
     openCvPath?: string;
 }
 declare const Canvas: React.FC<ICropperRef>;
