@@ -6,6 +6,8 @@ Originally forked from [react-perspective-cropper](https://github.com/giacomocer
 
 [![NPM](https://img.shields.io/npm/v/react-document-crop.svg)](https://www.npmjs.com/package/react-document-crop) [![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
+[![react-document-crop npminsights.com](https://npminsights.com/api/package/readme-image/react-document-crop?v=2023-02-22)](https://npminsights.com/package/react-document-crop)
+
 ## Intro
 
 react-document-crop doesn't, yet, do live borders recognition like some famous mobile apps.<br />

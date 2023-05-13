@@ -1,16 +1,23 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Button, Spin, Upload } from 'antd';
-import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
-import Cropper from 'react-perspective-cropper';
-
+import {
+  ArrowLeftOutlined,
+  CheckOutlined,
+  DownloadOutlined,
+  PlusOutlined,
+  RotateLeftOutlined,
+  RotateRightOutlined,
+  SyncOutlined,
+} from '@ant-design/icons';
+import Cropper from 'react-document-crop';
 import './App.css';
 import Header from './components/Header';
 
 const { Dragger } = Upload;
-
 const App = () => {
   const [cropState, setCropState] = useState();
   const [img, setImg] = useState();
+  const [croppedImg, setCroppedImg] = useState();
   const cropperRef = useRef();
 
   const onDragStop = useCallback((s) => setCropState(s), []);
@@ -22,6 +29,7 @@ const App = () => {
       const res = await cropperRef.current.done({
         preview: true,
       });
+      setCroppedImg(res);
       console.log('Cropped and filtered image', res);
     } catch (e) {
       console.log('error', e);
@@ -46,49 +54,73 @@ const App = () => {
     <div className="root-container">
       <Header />
       <div className="content-container">
-        {cropState && (
+        {img && cropState?.loading === false && (
           <div className="buttons-container">
-            <Button onClick={doSomething} icon={<CheckOutlined />}>
-              Done
-            </Button>
+            {croppedImg ? (
+              <>
+                <Button
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => {
+                    cropperRef.current.backToCrop();
+                    setCroppedImg(undefined);
+                  }}
+                >
+                  Back
+                </Button>
+                <Button
+                  icon={<DownloadOutlined />}
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.download = img.name;
+                    link.href = URL.createObjectURL(croppedImg);
+                    link.click();
+                  }}
+                >
+                  Download
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button onClick={doSomething} icon={<CheckOutlined />}>
+                  Done
+                </Button>
+                <Button
+                  icon={<RotateLeftOutlined />}
+                  onClick={() => {
+                    cropperRef.current.rotate(270);
+                  }}
+                >
+                  Rotate CCW
+                </Button>
+                <Button
+                  icon={<RotateRightOutlined />}
+                  onClick={() => {
+                    cropperRef.current.rotate(90);
+                  }}
+                >
+                  Rotate CW
+                </Button>
+                <Button
+                  onClick={() => {
+                    cropperRef.current.mirror(true);
+                  }}
+                >
+                  Flip Horizontal
+                </Button>
+                <Button
+                  onClick={() => {
+                    cropperRef.current.mirror();
+                  }}
+                >
+                  Flip Vertical
+                </Button>
+              </>
+            )}
             <Button
-              onClick={() => {
-                cropperRef.current.backToCrop();
-              }}
-            >
-              Back
-            </Button>
-            <Button
-              onClick={() => {
-                cropperRef.current.rotate(90);
-              }}
-            >
-              Rotate CW
-            </Button>
-            <Button
-              onClick={() => {
-                cropperRef.current.rotate(270);
-              }}
-            >
-              Rotate CCW
-            </Button>
-            <Button
-              onClick={() => {
-                cropperRef.current.mirror(true);
-              }}
-            >
-              Flip Horizontal
-            </Button>
-            <Button
-              onClick={() => {
-                cropperRef.current.mirror();
-              }}
-            >
-              Flip Vertical
-            </Button>
-            <Button
+              icon={<SyncOutlined />}
               onClick={() => {
                 setImg(undefined);
+                setCroppedImg(undefined);
                 setCropState();
               }}
             >
@@ -96,14 +128,16 @@ const App = () => {
             </Button>
           </div>
         )}
-        <Cropper
-          // openCvPath="./opencv/opencv.js"
-          ref={cropperRef}
-          image={img}
-          onChange={onChange}
-          onDragStop={onDragStop}
-          maxWidth={window.innerWidth - 10}
-        />
+        {img && (
+          <Cropper
+            // openCvPath="./opencv/opencv.js"
+            ref={cropperRef}
+            image={img}
+            onChange={onChange}
+            onDragStop={onDragStop}
+            maxWidth={window.innerWidth - 10}
+          />
+        )}
         {cropState?.loading && <Spin />}
         {!img && (
           <Dragger {...draggerProps}>
