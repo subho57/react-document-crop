@@ -39,6 +39,7 @@ const App = () => {
     name: 'file',
     multiple: false,
     onChange: onImgSelection,
+    accept: 'image/*',
   };
 
   return (

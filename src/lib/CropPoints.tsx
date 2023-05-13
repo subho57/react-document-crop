@@ -5,8 +5,8 @@ import CropPoint from './CropPoint';
 
 interface ICropPointsProps {
   pointSize: number;
-  pointBgColor?: string;
-  pointBorder?: string;
+  pointBgColor: string;
+  pointBorder: string;
   cropPoints: Types.CropPoints;
   previewDims: Types.PreviewDimensions;
   onDrag: (position: Types.Point, area: keyof Types.CropPoints, cropPoints: Types.CropPoints) => void;

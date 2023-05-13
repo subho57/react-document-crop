@@ -5,15 +5,14 @@ import type { CropPoints, PreviewDimensions } from '../types';
 const CropPointsDelimiters = ({
   cropPoints,
   previewDims,
-  lineWidth = 3,
-  lineColor = '#3cabe2',
+  lineWidth,
+  lineColor,
   pointSize,
-  displayGrid = true,
 }: {
   cropPoints: CropPoints;
   previewDims: PreviewDimensions;
-  lineWidth?: number;
-  lineColor?: string;
+  lineWidth: number;
+  lineColor: string;
   pointSize: number;
   displayGrid?: boolean;
 }) => {
@@ -63,33 +62,33 @@ const CropPointsDelimiters = ({
     ctx.clearRect(bottom.x - pointRadius, bottom.y - pointRadius, pointSize, pointSize);
     ctx.clearRect(left.x - pointRadius, left.y - pointRadius, pointSize, pointSize);
 
-    if (displayGrid) {
-      ctx.lineWidth = lineWidth / 2;
+    // if (displayGrid) {
+    //   ctx.lineWidth = lineWidth / 2;
 
-      ctx.beginPath();
-      ctx.moveTo(leftTop.x - pointRadius, leftTop.y);
-      ctx.lineTo(leftTop.x + pointRadius, leftTop.y);
-      ctx.moveTo(leftTop.x, leftTop.y + pointRadius);
-      ctx.lineTo(leftTop.x, leftTop.y - pointRadius);
+    //   ctx.beginPath();
+    //   ctx.moveTo(leftTop.x - pointRadius, leftTop.y);
+    //   ctx.lineTo(leftTop.x + pointRadius, leftTop.y);
+    //   ctx.moveTo(leftTop.x, leftTop.y + pointRadius);
+    //   ctx.lineTo(leftTop.x, leftTop.y - pointRadius);
 
-      ctx.moveTo(rightTop.x - pointRadius, rightTop.y);
-      ctx.lineTo(rightTop.x + pointRadius, rightTop.y);
-      ctx.moveTo(rightTop.x, rightTop.y + pointRadius);
-      ctx.lineTo(rightTop.x, rightTop.y - pointRadius);
+    //   ctx.moveTo(rightTop.x - pointRadius, rightTop.y);
+    //   ctx.lineTo(rightTop.x + pointRadius, rightTop.y);
+    //   ctx.moveTo(rightTop.x, rightTop.y + pointRadius);
+    //   ctx.lineTo(rightTop.x, rightTop.y - pointRadius);
 
-      ctx.moveTo(rightBottom.x - pointRadius, rightBottom.y);
-      ctx.lineTo(rightBottom.x + pointRadius, rightBottom.y);
-      ctx.moveTo(rightBottom.x, rightBottom.y + pointRadius);
-      ctx.lineTo(rightBottom.x, rightBottom.y - pointRadius);
+    //   ctx.moveTo(rightBottom.x - pointRadius, rightBottom.y);
+    //   ctx.lineTo(rightBottom.x + pointRadius, rightBottom.y);
+    //   ctx.moveTo(rightBottom.x, rightBottom.y + pointRadius);
+    //   ctx.lineTo(rightBottom.x, rightBottom.y - pointRadius);
 
-      ctx.moveTo(leftBottom.x - pointRadius, leftBottom.y);
-      ctx.lineTo(leftBottom.x + pointRadius, leftBottom.y);
-      ctx.moveTo(leftBottom.x, leftBottom.y + pointRadius);
-      ctx.lineTo(leftBottom.x, leftBottom.y - pointRadius);
+    //   ctx.moveTo(leftBottom.x - pointRadius, leftBottom.y);
+    //   ctx.lineTo(leftBottom.x + pointRadius, leftBottom.y);
+    //   ctx.moveTo(leftBottom.x, leftBottom.y + pointRadius);
+    //   ctx.lineTo(leftBottom.x, leftBottom.y - pointRadius);
 
-      ctx.closePath();
-      ctx.stroke();
-    }
+    //   ctx.closePath();
+    //   ctx.stroke();
+    // }
   }, [cropPoints, canvas.current]);
 
   useEffect(() => {

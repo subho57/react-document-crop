@@ -1,11 +1,31 @@
 {
-  "name": "react-perspective-cropper",
-  "homepage": ".",
-  "version": "0.2.3",
+  "name": "react-document-crop",
+  "homepage": "https://subho57.github.io/react-document-crop",
+  "version": "0.3.0",
   "description": "React component performing crop, border detection, perspective correction and simple image filters over a provided image 📲 📸",
-  "author": "giacomocerquone",
+  "author": "subho57",
   "license": "MIT",
-  "repository": "giacomocerquone/react-perspective-cropper",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/subho57/react-document-crop.git"
+  },
+  "keywords": [
+    "react",
+    "react-image",
+    "react-crop",
+    "react-cropper",
+    "react-image-crop",
+    "react-image-crop-component",
+    "react-image-crop-tool",
+    "react-easy-crop",
+    "react-advanced-cropper",
+    "react-perspective-cropper",
+    "opencv-react-ts",
+    "opencv.js",
+    "react-document-scanner",
+    "camscanner-react"
+  ],
+  "sideEffects": false,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.modern.js",
@@ -41,6 +61,7 @@
     "@typescript-eslint/eslint-plugin": "^5.59.5",
     "@typescript-eslint/parser": "^5.59.5",
     "babel-eslint": "^10.0.3",
+    "caniuse-lite": "^1.0.30001486",
     "cross-env": "^7.0.3",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
@@ -75,9 +96,7 @@
     "dist"
   ],
   "dependencies": {
-    "caniuse-lite": "^1.0.30001486",
-    "opencv-react": "subho57/opencv-react#master",
-    "prop-types": "^15.8.1",
+    "opencv-react-ts": "subho57/opencv-react-ts",
     "react-draggable": "^4.4.5"
   },
   "packageManager": "yarn@3.5.1"

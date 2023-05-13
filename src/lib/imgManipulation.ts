@@ -1,5 +1,5 @@
 /* eslint-disable no-param-reassign */
-import type { CV } from 'opencv-react';
+import type { CV } from 'opencv-react-ts';
 
 import type { CropPoints, OpenCVFilterProps } from '../types';
 

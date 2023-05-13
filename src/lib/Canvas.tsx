@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable no-param-reassign */
-import type { Mat, Rect } from 'opencv-react';
-import { useOpenCv } from 'opencv-react';
+import type { Mat, Rect } from 'opencv-react-ts';
+import { useOpenCv } from 'opencv-react-ts';
 import React, { Fragment, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import type * as Types from '../types';
@@ -31,6 +31,7 @@ export interface ICropperRef {
   maxHeight?: number;
   displayGrid?: boolean;
   openCvPath?: string;
+  magnification?: number;
 }
 
 const Canvas: React.FC<ICropperRef> = ({
@@ -38,14 +39,15 @@ const Canvas: React.FC<ICropperRef> = ({
   onDragStop,
   onChange,
   cropperRef,
-  pointSize = 30,
-  lineWidth,
-  pointBgColor,
-  pointBorder,
-  lineColor,
   maxWidth,
   maxHeight,
-  displayGrid,
+  lineWidth = 3,
+  pointSize = 30,
+  magnification = 3,
+  displayGrid = true,
+  lineColor = '#3cabe2',
+  pointBgColor = 'transparent',
+  pointBorder = '4px solid #3cabe2',
 }) => {
   const { loaded: cvLoaded, cv } = useOpenCv();
   const canvasRef = useRef<HTMLCanvasElement>();
@@ -273,22 +275,48 @@ const Canvas: React.FC<ICropperRef> = ({
     // Display the magnifier only when the user is dragging the vertices.
     if (area.includes('-')) {
       const magnCtx = magnifierCanvasRef.current?.getContext('2d', { alpha: true, willReadFrequently: true }) as CanvasRenderingContext2D;
+      if (!magnCtx) return;
+      magnCtx.lineWidth = lineWidth * 1.5;
+      magnCtx.strokeStyle = lineColor;
 
       if (!previewCanvasRef.current) return;
+      const pointRadius = pointSize / 2;
 
-      // TODO we should make those 5, 10 and 20 values proportionate
-      // to the point size
-      magnCtx?.drawImage(
+      magnCtx.save();
+      magnCtx.beginPath();
+      magnCtx.arc(x, y, pointRadius * magnification, 0, 2 * Math.PI);
+      magnCtx.closePath();
+      magnCtx.stroke();
+      magnCtx.clip();
+
+      magnCtx.drawImage(
         previewCanvasRef.current,
-        x - (pointSize - 10),
-        y - (pointSize - 10),
-        pointSize + 5,
-        pointSize + 5,
-        x + 10,
-        y - 90,
-        pointSize + 20,
-        pointSize + 20
+        x - pointRadius,
+        y - pointRadius,
+        pointSize,
+        pointSize,
+        x - pointRadius * magnification,
+        y - pointRadius * magnification,
+        pointSize * magnification,
+        pointSize * magnification
       );
+
+      magnCtx.beginPath();
+      magnCtx.arc(0, 0, pointRadius * magnification, 0, Math.PI * 2, true);
+      magnCtx.clip();
+      magnCtx.closePath();
+      magnCtx.restore();
+
+      if (displayGrid) {
+        magnCtx.beginPath();
+        magnCtx.lineWidth = lineWidth;
+        magnCtx.moveTo(x - pointRadius * magnification, y);
+        magnCtx.lineTo(x + pointRadius * magnification, y);
+        magnCtx.moveTo(x, y - pointRadius * magnification);
+        magnCtx.lineTo(x, y + pointRadius * magnification);
+        magnCtx.closePath();
+        magnCtx.stroke();
+      }
     }
     updateCropPoints(position, area, cp);
   }, []);
@@ -335,7 +363,7 @@ const Canvas: React.FC<ICropperRef> = ({
           <canvas
             style={{
               position: 'absolute',
-              zIndex: 5,
+              zIndex: 1002,
               pointerEvents: 'none',
             }}
             width={previewDims.width}

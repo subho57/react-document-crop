@@ -1,4 +1,4 @@
-import { OpenCvProvider } from 'opencv-react';
+import { OpenCvProvider } from 'opencv-react-ts';
 import React from 'react';
 
 import type { ICropperRef } from '../lib/Canvas';

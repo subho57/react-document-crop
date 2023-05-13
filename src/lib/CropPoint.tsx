@@ -33,8 +33,8 @@ const CropPoint = ({
   pointArea,
   defaultPosition,
   pointSize,
-  pointBgColor = 'transparent',
-  pointBorder = '4px solid #3cabe2',
+  pointBgColor,
+  pointBorder,
   onStop: externalOnStop,
   onDrag: externalOnDrag,
   bounds,
@@ -43,8 +43,8 @@ const CropPoint = ({
   pointArea: keyof CropPoints;
   defaultPosition: Point;
   pointSize: number;
-  pointBgColor?: string;
-  pointBorder?: string;
+  pointBgColor: string;
+  pointBorder: string;
   onStop: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
   onDrag: (position: Point, area: keyof CropPoints, cropPoints: CropPoints) => void;
   bounds: {
