@@ -23,17 +23,16 @@ const App = () => {
   const onDragStop = useCallback((s) => setCropState(s), []);
   const onChange = useCallback((s) => setCropState(s), []);
 
-  const doSomething = async () => {
-    console.log('CropState', cropState);
-    try {
-      const res = await cropperRef.current.done({
+  const doSomething = () => {
+    cropperRef.current
+      .done({
         preview: true,
-      });
-      setCroppedImg(res);
-      console.log('Cropped and filtered image', res);
-    } catch (e) {
-      console.log('error', e);
-    }
+      })
+      .then((blob) => {
+        setCroppedImg(blob);
+      })
+      // eslint-disable-next-line no-console
+      .catch(console.error);
   };
 
   const onImgSelection = async (e) => {
