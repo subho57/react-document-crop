@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.3.1]
+
+#### Features
+
+* Fixed issue where Cropper wasn't working on Reset.
+* Added offset for the magnifier canvas to be more accurate in touch devices.
+
 ### [0.3.0](http://github.com/subho57/react-document-crop)
 
 #### Features

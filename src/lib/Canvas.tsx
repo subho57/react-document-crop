@@ -32,6 +32,7 @@ export interface ICropperRef {
   displayGrid?: boolean;
   openCvPath?: string;
   magnification?: number;
+  offset?: { x: number; y: number };
 }
 
 const Canvas: React.FC<ICropperRef> = ({
@@ -48,6 +49,7 @@ const Canvas: React.FC<ICropperRef> = ({
   lineColor = '#3cabe2',
   pointBgColor = 'transparent',
   pointBorder = '4px solid #3cabe2',
+  offset = { x: 60, y: 60 },
 }) => {
   const { loaded: cvLoaded, cv } = useOpenCv();
   const canvasRef = useRef<HTMLCanvasElement>();
@@ -282,9 +284,25 @@ const Canvas: React.FC<ICropperRef> = ({
       if (!previewCanvasRef.current) return;
       const pointRadius = pointSize / 2;
 
+      const localOffset = { ...offset };
+
+      if (area === 'left-top') {
+        localOffset.x = +localOffset.x;
+        localOffset.y = +localOffset.y;
+      } else if (area === 'right-top') {
+        localOffset.x = -localOffset.x;
+        localOffset.y = +localOffset.y;
+      } else if (area === 'left-bottom') {
+        localOffset.x = +localOffset.x;
+        localOffset.y = -localOffset.y;
+      } else if (area === 'right-bottom') {
+        localOffset.x = -localOffset.x;
+        localOffset.y = -localOffset.y;
+      }
+
       magnCtx.save();
       magnCtx.beginPath();
-      magnCtx.arc(x, y, pointRadius * magnification, 0, 2 * Math.PI);
+      magnCtx.arc(x + localOffset.x, y + localOffset.y, pointRadius * magnification, 0, 2 * Math.PI);
       magnCtx.closePath();
       magnCtx.stroke();
       magnCtx.clip();
@@ -295,8 +313,8 @@ const Canvas: React.FC<ICropperRef> = ({
         y - pointRadius,
         pointSize,
         pointSize,
-        x - pointRadius * magnification,
-        y - pointRadius * magnification,
+        x + localOffset.x - pointRadius * magnification,
+        y + localOffset.y - pointRadius * magnification,
         pointSize * magnification,
         pointSize * magnification
       );
@@ -310,10 +328,10 @@ const Canvas: React.FC<ICropperRef> = ({
       if (displayGrid) {
         magnCtx.beginPath();
         magnCtx.lineWidth = lineWidth;
-        magnCtx.moveTo(x - pointRadius * magnification, y);
-        magnCtx.lineTo(x + pointRadius * magnification, y);
-        magnCtx.moveTo(x, y - pointRadius * magnification);
-        magnCtx.lineTo(x, y + pointRadius * magnification);
+        magnCtx.moveTo(x + localOffset.x - pointRadius * magnification, y + localOffset.y);
+        magnCtx.lineTo(x + localOffset.x + pointRadius * magnification, y + localOffset.y);
+        magnCtx.moveTo(x + localOffset.x, y + localOffset.y - pointRadius * magnification);
+        magnCtx.lineTo(x + localOffset.x, y + localOffset.y + pointRadius * magnification);
         magnCtx.closePath();
         magnCtx.stroke();
       }
