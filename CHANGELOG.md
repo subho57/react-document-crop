@@ -2,14 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [0.3.1]
-
-#### Features
-
-* Fixed issue where Cropper wasn't working on Reset.
-* Added offset for the magnifier canvas to be more accurate in touch devices.
-
-### [0.3.0](http://github.com/subho57/react-document-crop)
+### [0.3.x](http://github.com/subho57/react-document-crop)
 
 #### Features
 
@@ -19,6 +12,9 @@ All notable changes to this project will be documented in this file. See [standa
 * Improved magnifier
 * Added support for displayGrid while cropping
 * Improved example
+* Fixed issue where Cropper wasn't working on Reset.
+* Added offset for the magnifier canvas to be more accurate in touch devices.
+* Added support for disabling auto crop.
 
 ### [0.2.2](https://github.com/giacomocerquone/react-perspective-cropper/compare/v0.2.1...v0.2.2) (2023-01-04)
 

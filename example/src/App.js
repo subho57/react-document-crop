@@ -8,6 +8,7 @@ import {
   RotateLeftOutlined,
   RotateRightOutlined,
   SyncOutlined,
+  CloudUploadOutlined,
 } from '@ant-design/icons';
 import Cropper from 'react-document-crop';
 import './App.css';
@@ -118,12 +119,20 @@ const App = () => {
             <Button
               icon={<SyncOutlined />}
               onClick={() => {
+                cropperRef.current.reset();
+              }}
+            >
+              Reset
+            </Button>
+            <Button
+              icon={<CloudUploadOutlined />}
+              onClick={() => {
                 setImg(undefined);
                 setCroppedImg(undefined);
                 setCropState();
               }}
             >
-              Reset
+              Re-Upload
             </Button>
           </div>
         )}

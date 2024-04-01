@@ -32,6 +32,7 @@ export interface ICropperRef {
   displayGrid?: boolean;
   openCvPath?: string;
   magnification?: number;
+  autoCrop?: boolean;
   offset?: { x: number; y: number };
 }
 
@@ -46,6 +47,7 @@ const Canvas: React.FC<ICropperRef> = ({
   pointSize = 30,
   magnification = 3,
   displayGrid = true,
+  autoCrop = true,
   lineColor = '#3cabe2',
   pointBgColor = 'transparent',
   pointBorder = '4px solid #3cabe2',
@@ -84,29 +86,32 @@ const Canvas: React.FC<ICropperRef> = ({
     dst.delete();
   };
 
-  const detectContours = () => {
+  const initializeCoordinates = (detectContours = autoCrop) => {
     if (!cv || !canvasRef.current) return;
     const dst = cv.imread(canvasRef.current);
-    const ksize = new cv.Size(5, 5);
     // convert the image to grayscale, blur it, and find edges in the image
     cv.cvtColor(dst, dst, cv.COLOR_RGBA2GRAY, 0);
-    cv.GaussianBlur(dst, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
-    cv.Canny(dst, dst, 75, 200);
-    // find contours
-    cv.threshold(dst, dst, 120, 200, cv.THRESH_BINARY);
-    const contours = new cv.MatVector();
-    const hierarchy = new cv.Mat();
-    cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+    if (detectContours) {
+      const ksize = new cv.Size(5, 5);
+      cv.GaussianBlur(dst, dst, ksize, 0, 0, cv.BORDER_DEFAULT);
+      cv.Canny(dst, dst, 75, 200);
+      // find contours
+      cv.threshold(dst, dst, 120, 200, cv.THRESH_BINARY);
+      const contours = new cv.MatVector();
+      const hierarchy = new cv.Mat();
+      cv.findContours(dst, contours, hierarchy, cv.RETR_CCOMP, cv.CHAIN_APPROX_SIMPLE);
+      hierarchy.delete();
+      contours.delete();
+    }
     const rect = cv.boundingRect(dst);
     dst.delete();
-    hierarchy.delete();
-    contours.delete();
+
     // transform the rectangle into a set of points
     Object.keys(rect).forEach((key) => {
       rect[key as keyof Rect] *= imageResizeRatio;
     });
 
-    const contourCoordinates = {
+    const contourCoordinates: Types.CropPoints = {
       top: { x: rect.x + rect.width / 2, y: rect.y },
       bottom: { x: rect.x + rect.width / 2, y: rect.y + rect.height },
       left: { x: rect.x, y: rect.y + rect.height / 2 },
@@ -132,14 +137,20 @@ const Canvas: React.FC<ICropperRef> = ({
       mirror(cv, canvasRef.current, horizontal);
       setPreviewPaneDimensions();
       showPreview();
-      detectContours();
+      initializeCoordinates();
     },
     rotate: (angle: 90 | 180 | 270) => {
       if (!cv || !canvasRef.current) return;
       rotate(cv, canvasRef.current, angle);
       setPreviewPaneDimensions();
       showPreview();
-      detectContours();
+      initializeCoordinates();
+    },
+    reset: () => {
+      if (!cv || !canvasRef.current) return;
+      setPreviewPaneDimensions();
+      showPreview();
+      initializeCoordinates(false);
     },
     done: async (opts = {}) => {
       return new Promise<Blob>((resolve, reject) => {
@@ -210,7 +221,7 @@ const Canvas: React.FC<ICropperRef> = ({
       if (!src) return;
       await createCanvas(src);
       showPreview();
-      detectContours();
+      initializeCoordinates();
       setLoading(false);
     };
 
